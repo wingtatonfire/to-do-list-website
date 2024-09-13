@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container-fluid ml-5 mt-5">
+    <div class="row mr-5">
+        <div class="col">
+            {% for task in tasks %}
+            <dl class="display-4">
+                <dt>{{ task.task.capitalize() }}</dt>
+                {% set list_st = convert(task.small_task) %}
+                {% for small_task in list_st %}
+                {% if small_task == "" %}
+                {% else %}
+                <dd>- {{ small_task.capitalize() }}<a class="ml-1" style="color: red;" href="{{ url_for('delete_small_task', task_picked=task.task, small_picked=small_task) }}">×</a></dd>
+                {% endif %}
+                {% endfor %}
+            </dl>
+            {% if task.task == task_picked %}
+            <form action='{{ url_for("add", task_picked=task_picked) }}' method="post">
+                <div class="input-group input-group-lg">
+                    <input type="text" class="form-control" aria-label="Large" aria-describedby="inputGroup-sizing-sm"
+                           placeholder="Add Small Task Here" name="task">
+                    <input type="submit" value="Add">
+                </div>
+            </form>
+            {% endif %}
+            {% endfor %}
+
+
+        </div>
+        <div class="col">
+            {% for done_task in done_tasks %}
+            <dl class="display-4">
+                <dt><s>{{ done_task.done_task.capitalize() }}</s></dt>
+            </dl>
+            {% endfor %}
+            {% if done_tasks|length > 1 %}
+            <a href="{{ url_for('clear') }}" class="button">Clear All</a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

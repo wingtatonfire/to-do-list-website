@@ -1,0 +1,41 @@
+body {
+   background-color: lightgrey;
+}
+
+.jumbotron {
+    background-color: lightgrey;
+    text-align: left;
+}
+.footer {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  color: grey;
+  text-align: left;
+}
+dt {
+    font-size: 0.75em;
+}
+dd {
+    font-size: 0.5em;
+    padding-left: 40px
+}
+a.button {
+    padding: 1px 6px;
+    border: 1px outset buttonborder;
+    border-radius: 3px;
+    color: buttontext;
+    background-color: buttonface;
+    text-decoration: none;
+}
+
+form.login {
+  width: 500px;
+  margin: auto;
+}
+
+.flashes{
+    text-align: center;
+    color: red;
+}
