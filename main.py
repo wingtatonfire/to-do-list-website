@@ -14,11 +14,14 @@ import random
 
 login_manager = LoginManager()
 
+
 def guess_or_not(user):
     if "@" not in user.email:
         return True
     else:
         return False
+
+
 def convert(string):
     li = list(string.split(", "))
     return li
@@ -29,7 +32,6 @@ class Base(DeclarativeBase):
 
 
 db = SQLAlchemy(model_class=Base)
-
 app = Flask(__name__)
 app.jinja_env.globals.update(convert=convert)
 login_manager.init_app(app)
@@ -51,7 +53,8 @@ class Task(db.Model):
     small_task: Mapped[str] = mapped_column(nullable=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("user_table.id"))
     user: Mapped["User"] = relationship(back_populates="tasks")
-
+    page_id: Mapped[int] = mapped_column(ForeignKey("page_table.id"))
+    page: Mapped["Pages"] = relationship(back_populates="tasks")
 
 
 class DoneTask(db.Model):
@@ -59,6 +62,8 @@ class DoneTask(db.Model):
     done_task: Mapped[str] = mapped_column(unique=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("user_table.id"))
     user: Mapped["User"] = relationship(back_populates="done_tasks")
+    page_id: Mapped[int] = mapped_column(ForeignKey("page_table.id"))
+    page: Mapped["Pages"] = relationship(back_populates="done_tasks")
 
 
 class User(UserMixin, db.Model):
@@ -68,7 +73,17 @@ class User(UserMixin, db.Model):
     password: Mapped[str] = mapped_column(String(100))
     tasks: Mapped[List["Task"]] = relationship(back_populates="user")
     done_tasks: Mapped[List["DoneTask"]] = relationship(back_populates="user")
+    page: Mapped[List["Pages"]] = relationship(back_populates="user")
 
+
+class Pages(db.Model):
+    __tablename__ = "page_table"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(String(50), default="#page1")
+    user_id: Mapped[int] = mapped_column(ForeignKey("user_table.id"))
+    user: Mapped["User"] = relationship(back_populates="page")
+    tasks: Mapped[List["Task"]] = relationship(back_populates="page")
+    done_tasks: Mapped[List["DoneTask"]] = relationship(back_populates="page")
 
 
 with app.app_context():
@@ -95,9 +110,15 @@ def home():
     user = flask_login.current_user
     tasks = db.session.execute(db.select(Task).filter_by(user=user)).scalars()
     done_tasks = db.session.execute(db.select(DoneTask).filter_by(user=user)).scalars().all()
+    pages = db.session.execute(db.select(Pages).filter_by(user=user)).scalars().all()
+    if not pages:
+        page = Pages(user=user)
+        db.session.add(page)
+        db.session.commit()
+
 
     return render_template("index.html", tasks=tasks, done_tasks=done_tasks, user=user,
-                           is_guest=guess_or_not(user))
+                           is_guest=guess_or_not(user), pages=pages)
 
 
 @app.route("/add_small_task/<task_picked>", methods=['GET', 'POST'])
@@ -215,12 +236,26 @@ def create():
         return redirect(url_for('home'))
     return render_template("create.html", user=flask_login.current_user, is_guest=is_guest)
 
-
 @app.route("/logout", methods=['GET', 'POST'])
 def logout():
     flask_login.logout_user()
-
     return redirect(url_for("home"))
 
+
+
+@app.route("/create_page", methods=['GET', 'POST'])
+def create_page():
+    if request.method == "POST":
+        user = flask_login.current_user
+        name = request.form.get("page_name")
+        page = Pages(name=name,
+                     user=user)
+        result = db.session.execute(db.select(Pages).filter_by(user=user, name=name)).scalar()
+        if not result:
+            db.session.add(page)
+            db.session.commit()
+        else:
+            flash("Page name already existed.")
+    return redirect(url_for("home"))
 
 app.run(debug=True)

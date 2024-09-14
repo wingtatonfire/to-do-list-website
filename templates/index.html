@@ -1,5 +1,36 @@
 {% extends "base.html" %}
+{% block page_name %}
+<div class="dropdown">
+  <button class="btn btn-light dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+      Page#1
+  </button>
+  <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+          {% for page in pages %}
+    <a class="dropdown-item" href="#">{{ page.name }}</a>
+      {% endfor %}
+  </div>
+</div>
+<form class="form-inline" action="{{ url_for('create_page') }}" method='post'>
+  <div class="form-group mx-sm-3">
+    <input type="text" class="form-control" id="inputPassword2" placeholder="Page Name" name="page_name">
+  </div>
+  <button type="submit" class="btn btn-light">Create Page</button>
+</form>
+
+{% endblock %}
+
 {% block content %}
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+<div class="mt-3">
+    <ul class=flashes>
+    {% for message in messages %}
+      <p>{{ message }}</p>
+    {% endfor %}
+    </ul>
+  {% endif %}
+{% endwith %}
+    </div>
 <div class="container-fluid ml-5 mt-5">
     <div class="row mr-5">
         <div class="col">
